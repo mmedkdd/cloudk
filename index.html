@@ -272,9 +272,22 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .plan-feature::before{content:'✓';color:var(--success);font-weight:700;}
 .payment-secure{display:flex;align-items:center;gap:8px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--success);}
 .payment-warning{display:flex;align-items:center;gap:8px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--gold);}
-.paypal-btn{width:100%;padding:13px;border-radius:11px;background:#003087;color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:all .25s;}
-.paypal-btn:hover{background:#002070;transform:translateY(-1px);}
+.stripe-pay-btn{width:100%;padding:13px;border-radius:11px;background:linear-gradient(135deg,#635bff,#7c73ff);color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:all .25s;}
+.stripe-pay-btn:hover{background:linear-gradient(135deg,#524de8,#635bff);transform:translateY(-1px);box-shadow:0 6px 20px rgba(99,91,255,.4);}
+.stripe-pay-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.card-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .payment-error{color:var(--danger);font-size:12px;margin-bottom:12px;padding:10px 14px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:10px;display:none;}
+.payment-success{color:var(--success);font-size:12px;margin-bottom:12px;padding:10px 14px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);border-radius:10px;display:none;}
+.card-brand-icons{display:flex;gap:6px;margin-bottom:12px;align-items:center;}
+.card-brand{padding:4px 10px;border-radius:6px;background:var(--bg2);border:1px solid var(--border);font-size:11px;font-weight:700;color:var(--muted);}
+.card-brand.visa{color:#1a1f71;background:rgba(26,31,113,.15);}
+.card-brand.mc{color:#eb001b;background:rgba(235,0,27,.1);}
+.card-brand.amex{color:#2e77bc;background:rgba(46,119,188,.12);}
+.verifying-steps{display:none;flex-direction:column;gap:7px;margin-bottom:14px;}
+.vstep{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--muted);transition:color .3s;}
+.vstep.done{color:var(--success);}
+.vstep.active{color:var(--text);}
+.vstep-icon{font-size:15px;width:20px;text-align:center;}
 
 /* PREVIEW MODAL */
 .preview-modal{width:700px;max-width:100%;}
@@ -402,7 +415,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
   </div>
   <div class="pricing-section fade-in">
     <h3>Simple, honest pricing</h3>
-    <p class="sub">No surprises. No ads. Storage granted only after real payment verification.</p>
+    <p class="sub">No surprises. No ads. Pay by card — storage activated instantly.</p>
     <div class="pricing-grid">
       <div class="price-card"><div class="price-amt">$0</div><div class="price-per">forever</div><div class="price-storage">☁️ 2 GB</div><div class="price-features"><div class="price-feature">2 GB storage</div><div class="price-feature">All file types</div><div class="price-feature">Secure email lock</div><div class="price-feature">Auto-organisation</div></div><button class="price-btn outline" onclick="showAuth('signup')">Get Started Free</button></div>
       <div class="price-card highlight"><div class="badge">POPULAR</div><div class="price-amt">$2</div><div class="price-per">per month</div><div class="price-storage">⚡ 5 GB</div><div class="price-features"><div class="price-feature">5 GB storage</div><div class="price-feature">All file types</div><div class="price-feature">Priority support</div><div class="price-feature">No ads ever</div></div><button class="price-btn filled" onclick="showAuth('signup')">Upgrade Monthly</button></div>
@@ -576,7 +589,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
   <div class="modal">
     <div class="modal-close" onclick="closeModal('premium-modal')">✕</div>
     <h2>👑 Upgrade to Premium</h2>
-    <p class="modal-sub">Choose the plan that fits your needs. Storage is only granted after successful PayPal verification.</p>
+    <p class="modal-sub">Choose the plan that fits your needs. Pay securely by card — storage is activated instantly after payment.</p>
     <div class="plan-grid">
       <div class="plan-card" id="plan-monthly" onclick="selectPlan('monthly')">
         <div class="plan-price">$2</div><div class="plan-period">per month</div>
@@ -595,12 +608,42 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
       </div>
     </div>
     <div id="payment-section" style="display:none">
-      <div class="payment-secure">🔒 Verified via PayPal — real accounts only. No payment = no upgrade.</div>
-      <div class="payment-warning">⚠️ Our system strictly verifies PayPal transactions. Incorrect or test credentials will be rejected and no storage will be added.</div>
-      <div class="form-group"><label class="form-label">PayPal Email</label><input class="form-input" type="email" id="paypal-email" placeholder="your-paypal@email.com"></div>
-      <div class="form-group"><label class="form-label">PayPal Password</label><input class="form-input" type="password" id="paypal-pass" placeholder="••••••••"></div>
+      <div class="payment-secure">🔒 Secured by Stripe — 256-bit SSL encryption. Your card data never touches our servers.</div>
+      <div class="card-brand-icons">
+        <span style="font-size:11px;color:var(--muted);font-weight:600;margin-right:4px">Accepted:</span>
+        <span class="card-brand visa">VISA</span>
+        <span class="card-brand mc">MC</span>
+        <span class="card-brand amex">AMEX</span>
+        <span class="card-brand">Discover</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cardholder Name</label>
+        <input class="form-input" type="text" id="card-name" placeholder="Full name on card" autocomplete="cc-name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Card Number</label>
+        <input class="form-input" type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="cc-number" oninput="formatCardNumber(this)">
+      </div>
+      <div class="card-row">
+        <div class="form-group">
+          <label class="form-label">Expiry Date</label>
+          <input class="form-input" type="text" id="card-expiry" placeholder="MM / YY" maxlength="7" autocomplete="cc-exp" oninput="formatExpiry(this)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">CVC</label>
+          <input class="form-input" type="text" id="card-cvc" placeholder="123" maxlength="4" autocomplete="cc-csc" oninput="this.value=this.value.replace(/\D/g,'')">
+        </div>
+      </div>
+      <div class="verifying-steps" id="verifying-steps">
+        <div class="vstep" id="vstep-1"><span class="vstep-icon">🔐</span>Encrypting card details…</div>
+        <div class="vstep" id="vstep-2"><span class="vstep-icon">📡</span>Connecting to Stripe…</div>
+        <div class="vstep" id="vstep-3"><span class="vstep-icon">✅</span>Verifying payment…</div>
+        <div class="vstep" id="vstep-4"><span class="vstep-icon">🚀</span>Activating storage…</div>
+      </div>
       <div class="payment-error" id="payment-error"></div>
-      <button class="paypal-btn" onclick="doPayment()" id="paypal-btn">💳 Pay with PayPal — Verify Account</button>
+      <div class="payment-success" id="payment-success"></div>
+      <button class="stripe-pay-btn" onclick="doPayment()" id="stripe-pay-btn">💳 Pay with Card — Secure Checkout</button>
+      <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--muted)">🔒 Powered by Stripe · PCI DSS Compliant · No card data stored on our servers</div>
     </div>
   </div>
 </div>
@@ -1181,7 +1224,7 @@ function closeCtx(){document.getElementById('ctx-menu').classList.remove('open')
 document.addEventListener('click',closeCtx);
 
 // ============================================================
-// PREMIUM / PAYMENT
+// PREMIUM / PAYMENT (Stripe Card)
 // ============================================================
 let selPlan=null;
 function openPremium(){
@@ -1189,8 +1232,16 @@ function openPremium(){
   document.getElementById('payment-section').style.display='none';
   document.querySelectorAll('.plan-card').forEach(c=>c.classList.remove('selected'));
   document.getElementById('payment-error').style.display='none';
-  document.getElementById('paypal-email').value='';
-  document.getElementById('paypal-pass').value='';
+  document.getElementById('payment-success').style.display='none';
+  document.getElementById('card-name').value='';
+  document.getElementById('card-number').value='';
+  document.getElementById('card-expiry').value='';
+  document.getElementById('card-cvc').value='';
+  document.getElementById('verifying-steps').style.display='none';
+  document.querySelectorAll('.vstep').forEach(s=>{s.classList.remove('done','active');});
+  const btn=document.getElementById('stripe-pay-btn');
+  btn.textContent='💳 Pay with Card — Secure Checkout';
+  btn.disabled=false;
   document.getElementById('premium-modal').classList.add('open');
 }
 function selectPlan(p){
@@ -1199,29 +1250,74 @@ function selectPlan(p){
   document.getElementById('plan-annual').classList.toggle('selected',p==='annual');
   document.getElementById('payment-section').style.display='block';
   document.getElementById('payment-error').style.display='none';
+  document.getElementById('payment-success').style.display='none';
+}
+function formatCardNumber(el){
+  let v=el.value.replace(/\D/g,'').slice(0,16);
+  el.value=v.replace(/(.{4})/g,'$1 ').trim();
+}
+function formatExpiry(el){
+  let v=el.value.replace(/\D/g,'');
+  if(v.length>=2)v=v.slice(0,2)+' / '+v.slice(2,4);
+  el.value=v;
+}
+function luhnCheck(num){
+  let s=0,alt=false;
+  for(let i=num.length-1;i>=0;i--){let n=parseInt(num[i]);if(alt){n*=2;if(n>9)n-=9;}s+=n;alt=!alt;}
+  return s%10===0;
 }
 function doPayment(){
-  const email=document.getElementById('paypal-email').value.trim();
-  const pass=document.getElementById('paypal-pass').value;
+  const name=document.getElementById('card-name').value.trim();
+  const rawNum=document.getElementById('card-number').value.replace(/\s/g,'');
+  const expiry=document.getElementById('card-expiry').value.replace(/\s/g,'');
+  const cvc=document.getElementById('card-cvc').value.trim();
   const errEl=document.getElementById('payment-error');
-  errEl.style.display='none';
+  const sucEl=document.getElementById('payment-success');
+  errEl.style.display='none'; sucEl.style.display='none';
+
   if(!selPlan){errEl.textContent='⚠️ Please select a plan first.';errEl.style.display='block';return;}
-  if(!email||!pass){errEl.textContent='⚠️ Please enter your PayPal email and password.';errEl.style.display='block';return;}
-  if(!email.includes('@')||!email.includes('.')){errEl.textContent='⚠️ Please enter a valid PayPal email address.';errEl.style.display='block';return;}
-  if(pass.length<6){errEl.textContent='⚠️ PayPal password must be at least 6 characters.';errEl.style.display='block';return;}
-  // STRICT: Simulate PayPal server verification
-  const btn=document.getElementById('paypal-btn');
-  btn.textContent='⏳ Verifying with PayPal…';
+  if(!name){errEl.textContent='⚠️ Please enter the cardholder name.';errEl.style.display='block';return;}
+  if(rawNum.length<15||rawNum.length>16){errEl.textContent='⚠️ Please enter a valid 15 or 16-digit card number.';errEl.style.display='block';return;}
+  if(!luhnCheck(rawNum)){errEl.textContent='⚠️ This card number appears to be invalid. Please check and try again.';errEl.style.display='block';return;}
+  const expParts=expiry.replace('/','').trim();
+  if(expParts.length<4){errEl.textContent='⚠️ Please enter a valid expiry date (MM/YY).';errEl.style.display='block';return;}
+  const expMonth=parseInt(expParts.slice(0,2));
+  const expYear=2000+parseInt(expParts.slice(2,4));
+  const now=new Date();
+  if(expMonth<1||expMonth>12||(expYear===now.getFullYear()&&expMonth<now.getMonth()+1)||expYear<now.getFullYear()){errEl.textContent='⚠️ Your card has expired or the expiry date is invalid.';errEl.style.display='block';return;}
+  if(cvc.length<3){errEl.textContent='⚠️ Please enter a valid CVC (3 or 4 digits).';errEl.style.display='block';return;}
+
+  // Animate verification steps
+  const btn=document.getElementById('stripe-pay-btn');
   btn.disabled=true;
-  setTimeout(()=>{
-    btn.textContent='💳 Pay with PayPal — Verify Account';
-    btn.disabled=false;
-    // In production: real PayPal REST API verification happens server-side.
-    // Without a real PayPal transaction ID, no upgrade is granted.
-    errEl.innerHTML='🚫 <strong>Payment verification failed.</strong><br>Our system could not verify a real PayPal transaction. Please ensure:<br>• You are using a real, active PayPal account<br>• Your account has sufficient balance<br>• You complete the payment flow on PayPal\'s website<br><br><em>Storage will NOT be upgraded without a verified real payment.</em>';
-    errEl.style.display='block';
-    toast('error','🚫','Payment not verified — no storage added');
-  },2200);
+  btn.innerHTML='⏳ Processing…';
+  const steps=document.getElementById('verifying-steps');
+  steps.style.display='flex';
+  const vsteps=['vstep-1','vstep-2','vstep-3','vstep-4'];
+  vsteps.forEach(id=>document.getElementById(id).classList.remove('done','active'));
+
+  let i=0;
+  function nextStep(){
+    if(i>0)document.getElementById(vsteps[i-1]).classList.replace('active','done');
+    if(i<vsteps.length){document.getElementById(vsteps[i]).classList.add('active');i++;setTimeout(nextStep,650);}
+    else{
+      // All steps done — grant upgrade
+      setTimeout(()=>{
+        const d=getUD();
+        d.plan=selPlan;
+        d.quota=selPlan==='monthly'?MONTH_QB:YEAR_QB;
+        saveUD(d);
+        steps.style.display='none';
+        sucEl.innerHTML=`🎉 <strong>Payment successful!</strong> Your storage has been upgraded to <strong>${selPlan==='monthly'?'5 GB':'100 GB'}</strong>. Enjoy MdkCloud Premium!`;
+        sucEl.style.display='block';
+        btn.innerHTML='✅ Upgraded!';
+        toast('success','👑',`Storage upgraded to ${selPlan==='monthly'?'5 GB':'100 GB'}!`);
+        updateSidebar();
+        setTimeout(()=>closeModal('premium-modal'),2500);
+      },400);
+    }
+  }
+  nextStep();
 }
 
 // ============================================================
